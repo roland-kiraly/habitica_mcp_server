@@ -56,6 +56,18 @@ const deleteTaskSchema = z.object({
 });
 type DeleteTaskInput = z.infer<typeof deleteTaskSchema>;
 
+const addReminderSchema = z.object({
+  taskId: z.string().describe("Task ID to add a reminder to"),
+  time: z.string().datetime().describe("ISO datetime for the reminder"),
+  startDate: z
+    .string()
+    .datetime()
+    .optional()
+    .describe("Optional start date for the reminder"),
+  message: z.string().optional().describe("Optional reminder message"),
+});
+type AddReminderInput = z.infer<typeof addReminderSchema>;
+
 function toJson(data: unknown) {
   return JSON.stringify(data, null, 2);
 }
@@ -172,6 +184,25 @@ async function main() {
       return {
         content: [{ type: "text", text: toJson(stats) }],
         structuredContent: { stats },
+      };
+    }
+  );
+
+  server.registerTool(
+    "add_reminder",
+    {
+      description: "Add a reminder to a Habitica task",
+      inputSchema: addReminderSchema,
+    },
+    async ({ taskId, time, startDate, message }: AddReminderInput) => {
+      const reminder = await client.addReminder(taskId, {
+        time,
+        startDate,
+        message,
+      });
+      return {
+        content: [{ type: "text", text: toJson(reminder) }],
+        structuredContent: { reminder },
       };
     }
   );

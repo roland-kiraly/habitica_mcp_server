@@ -10,6 +10,11 @@ export interface HabiticaConfig {
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
 type ApiTaskType = "habit" | "daily" | "todo" | "reward";
+interface HabiticaReminderInput {
+  time: string;
+  startDate?: string;
+  message?: string;
+}
 
 export class HabiticaClient {
   private readonly baseUrl: string;
@@ -122,6 +127,10 @@ export class HabiticaClient {
   async deleteTask(taskId: string) {
     await this.request(`/tasks/${taskId}`, "DELETE");
     return { deleted: true, taskId };
+  }
+
+  async addReminder(taskId: string, reminder: HabiticaReminderInput) {
+    return this.request(`/tasks/${taskId}/reminders`, "POST", reminder);
   }
 
   async getUser() {
