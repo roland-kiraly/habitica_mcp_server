@@ -9,6 +9,7 @@ export interface HabiticaConfig {
 }
 
 type RequestMethod = "GET" | "POST" | "PUT" | "DELETE";
+type ApiTaskType = "habit" | "daily" | "todo" | "reward";
 
 export class HabiticaClient {
   private readonly baseUrl: string;
@@ -24,6 +25,22 @@ export class HabiticaClient {
       "x-client": this.config.client,
       "content-type": "application/json",
     };
+  }
+
+  private toApiTaskType(type?: TaskType): ApiTaskType | undefined {
+    if (!type) return undefined;
+    switch (type) {
+      case "habits":
+        return "habit";
+      case "dailys":
+        return "daily";
+      case "todos":
+        return "todo";
+      case "rewards":
+        return "reward";
+      default:
+        return undefined;
+    }
   }
 
   private async request<T>(
@@ -52,7 +69,8 @@ export class HabiticaClient {
   }
 
   async listTasks(type?: TaskType) {
-    const search = type ? `?type=${type}` : "";
+    const mappedType = this.toApiTaskType(type);
+    const search = mappedType ? `?type=${mappedType}` : "";
     return this.request(`/tasks/user${search}`);
   }
 
@@ -67,6 +85,7 @@ export class HabiticaClient {
   }) {
     const body = {
       ...input,
+      type: this.toApiTaskType(input.type),
       date: input.dueDate,
       checklist: input.checklist?.map((text) => ({ text })),
     };
@@ -88,6 +107,7 @@ export class HabiticaClient {
   ) {
     const body = {
       ...updates,
+      type: this.toApiTaskType(updates.type),
       date: updates.dueDate,
       checklist: updates.checklist?.map((text) => ({ text })),
     };
